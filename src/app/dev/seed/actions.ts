@@ -18,12 +18,13 @@ const TEST_DEPT_NAME = "テスト医局(循環器内科)";
 
 /**
  * テスト用医局・グループ・所属・シフトを一括作成
+ * <form action={createTestData}> で呼ばれる前提の Server Action
  */
-export async function createTestData() {
+export async function createTestData(_formData: FormData): Promise<void> {
   const appUser = await syncCurrentUser();
-  if (!appUser) return { error: "認証されていません" };
+  if (!appUser) throw new Error("認証されていません");
 
-  // 既に所属がある場合はスキップ
+  // 既に所属がある場合はスキップ(UIでもボタンは無効化される)
   const existing = await db
     .select()
     .from(memberships)
@@ -34,7 +35,7 @@ export async function createTestData() {
       )
     );
   if (existing.length > 0) {
-    return { error: "既に医局に所属しています。先に削除してください" };
+    throw new Error("既に医局に所属しています");
   }
 
   // 1. 医局を作成
@@ -102,7 +103,6 @@ export async function createTestData() {
     .returning();
 
   // 5. シフトを作成
-  // 日付フォーマット (YYYY-MM-DD)
   const fmt = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const dayOffset = (n: number) => {
@@ -112,7 +112,6 @@ export async function createTestData() {
   };
 
   const sampleShifts = [
-    // 今日(現在月 period)
     {
       periodId: currentPeriod.id,
       date: fmt(now),
@@ -122,7 +121,6 @@ export async function createTestData() {
       startTime: "09:00:00",
       endTime: "17:00:00",
     },
-    // 2日後
     {
       periodId: currentPeriod.id,
       date: fmt(dayOffset(2)),
@@ -132,22 +130,52 @@ export async function createTestData() {
       startTime: "17:00:00",
       endTime: "09:00:00",
     },
-    // 7日後(次月にまたぐ可能性あり、period判定を簡易化)
-    ...generateShiftAcrossPeriod(dayOffset(7), "gaikin", "△△クリニック", appUser.id, currentPeriod, nextPeriod, "09:00:00", "17:00:00"),
-    // 14日後
-    ...generateShiftAcrossPeriod(dayOffset(14), "duty", "院内当直", appUser.id, currentPeriod, nextPeriod, "17:00:00", "09:00:00"),
-    // 21日後
-    ...generateShiftAcrossPeriod(dayOffset(21), "oncall", "第2オンコール", appUser.id, currentPeriod, nextPeriod, null, null),
-    // 28日後
-    ...generateShiftAcrossPeriod(dayOffset(28), "gaikin", "〇〇病院", appUser.id, currentPeriod, nextPeriod, "09:00:00", "17:00:00"),
+    ...generateShiftAcrossPeriod(
+      dayOffset(7),
+      "gaikin",
+      "△△クリニック",
+      appUser.id,
+      currentPeriod,
+      nextPeriod,
+      "09:00:00",
+      "17:00:00"
+    ),
+    ...generateShiftAcrossPeriod(
+      dayOffset(14),
+      "duty",
+      "院内当直",
+      appUser.id,
+      currentPeriod,
+      nextPeriod,
+      "17:00:00",
+      "09:00:00"
+    ),
+    ...generateShiftAcrossPeriod(
+      dayOffset(21),
+      "oncall",
+      "第2オンコール",
+      appUser.id,
+      currentPeriod,
+      nextPeriod,
+      null,
+      null
+    ),
+    ...generateShiftAcrossPeriod(
+      dayOffset(28),
+      "gaikin",
+      "〇〇病院",
+      appUser.id,
+      currentPeriod,
+      nextPeriod,
+      "09:00:00",
+      "17:00:00"
+    ),
   ];
 
   await db.insert(shifts).values(sampleShifts);
 
   revalidatePath("/");
   revalidatePath("/dev/seed");
-
-  return { success: true, message: `テスト医局とシフト${sampleShifts.length}件を作成しました` };
 }
 
 // 日付に応じて適切な period を選択するヘルパー
@@ -164,7 +192,8 @@ function generateShiftAcrossPeriod(
   const fmt = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const periodId =
-    date.getFullYear() === currentPeriod.year && date.getMonth() + 1 === currentPeriod.month
+    date.getFullYear() === currentPeriod.year &&
+    date.getMonth() + 1 === currentPeriod.month
       ? currentPeriod.id
       : nextPeriod.id;
   return [
@@ -181,25 +210,22 @@ function generateShiftAcrossPeriod(
 }
 
 /**
- * テスト用データ削除(自分が owner の医局を削除すれば cascade で全部消える)
+ * テスト用データ削除
+ * <form action={deleteTestData}> で呼ばれる
  */
-export async function deleteTestData() {
+export async function deleteTestData(_formData: FormData): Promise<void> {
   const appUser = await syncCurrentUser();
-  if (!appUser) return { error: "認証されていません" };
+  if (!appUser) throw new Error("認証されていません");
 
-  // 自分が owner で名前が「テスト医局」の医局を削除
-  const result = await db
+  await db
     .delete(medicalDepartments)
     .where(
       and(
         eq(medicalDepartments.ownerUserId, appUser.id),
         eq(medicalDepartments.name, TEST_DEPT_NAME)
       )
-    )
-    .returning();
+    );
 
   revalidatePath("/");
   revalidatePath("/dev/seed");
-
-  return { success: true, message: `${result.length}件の医局を削除しました(関連データも全削除)` };
 }

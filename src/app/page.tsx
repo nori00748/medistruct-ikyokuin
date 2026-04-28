@@ -83,7 +83,7 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <UserButton afterSignOutUrl="/sign-in" />
+          <UserButton />
         </div>
       </header>
 
