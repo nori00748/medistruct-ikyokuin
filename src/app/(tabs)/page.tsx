@@ -3,7 +3,6 @@
 // - 所属医局があるかチェック
 // - 所属あり:今日のシフトと今後の予定を実データから表示
 // - 所属なし:「招待URLから登録してください」のウェルカム表示
-import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { eq, and, gte, asc } from "drizzle-orm";
 import {
@@ -60,10 +59,10 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg pb-20">
+    <>
       {/* ヘッダー */}
       <header className="bg-surface border-b border-border sticky top-0 z-20">
-        <div className="max-w-[420px] mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span
               className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-sm"
@@ -88,7 +87,7 @@ export default async function Home() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="flex-1 max-w-[420px] w-full mx-auto px-4 py-4 space-y-5">
+      <main className="px-4 py-4 space-y-5">
         {hasMembership ? (
           <MembershipHome
             userName={appUser.displayName ?? "あなた"}
@@ -102,18 +101,8 @@ export default async function Home() {
             email={appUser.email}
           />
         )}
-
-        {/* 開発用リンク */}
-        <div className="text-center pt-4">
-          <Link
-            href="/dev/seed"
-            className="text-[11px] text-muted-2 hover:text-muted underline"
-          >
-            🛠 テストデータ管理(開発用)
-          </Link>
-        </div>
       </main>
-    </div>
+    </>
   );
 }
 
