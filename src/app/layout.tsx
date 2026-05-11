@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { jaJP } from "@clerk/localizations";
 import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./_components/ServiceWorkerRegister";
@@ -46,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={jaJP}>
       <html
         lang="ja"
         className={`${inter.variable} ${notoSansJp.variable} h-full antialiased`}
