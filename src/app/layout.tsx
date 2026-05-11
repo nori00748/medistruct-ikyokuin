@@ -47,7 +47,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider localization={jaJP}>
+    <ClerkProvider
+      localization={jaJP}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+    >
       <html
         lang="ja"
         className={`${inter.variable} ${notoSansJp.variable} h-full antialiased`}
