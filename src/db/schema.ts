@@ -136,7 +136,51 @@ export const shifts = pgTable(
 );
 
 // -------------------------------------------------------------------
-// 7. invitations(招待URL)
+// 7a. kibou_requests(希望休の提出 — ユーザー×期間で1件)
+// -------------------------------------------------------------------
+export const kibouRequests = pgTable(
+  "ikyokuin_kibou_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    periodId: uuid("period_id")
+      .notNull()
+      .references(() => shiftPeriods.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    memo: text("memo"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    periodUserUnique: unique().on(t.periodId, t.userId),
+  })
+);
+
+// -------------------------------------------------------------------
+// 7b. kibou_dates(希望休の日付 — 1提出に複数日付)
+// -------------------------------------------------------------------
+export const kibouDates = pgTable(
+  "ikyokuin_kibou_dates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kibouRequestId: uuid("kibou_request_id")
+      .notNull()
+      .references(() => kibouRequests.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    priority: integer("priority").notNull(), // 1 = 第1希望, 2 = 第2希望
+  },
+  (t) => ({
+    requestDateUnique: unique().on(t.kibouRequestId, t.date),
+  })
+);
+
+// -------------------------------------------------------------------
+// 8. invitations(招待URL)
 // -------------------------------------------------------------------
 export const invitations = pgTable("ikyokuin_invitations", {
   id: uuid("id").primaryKey().defaultRandom(),

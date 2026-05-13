@@ -8,6 +8,13 @@
       "when": 1777351812391,
       "tag": "0000_far_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778659904129,
+      "tag": "0001_sudden_maximus",
+      "breakpoints": true
     }
   ]
 }
