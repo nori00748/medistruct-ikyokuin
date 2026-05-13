@@ -41,6 +41,33 @@ export default async function SettingsPage() {
       </header>
 
       <main className="px-4 py-4 space-y-5">
+        {/* 医局長メニュー(admin のみ表示) */}
+        {dept?.role === "admin" && (
+          <section>
+            <Link
+              href="/admin"
+              className="block bg-surface border-2 border-primary rounded-xl p-4 flex items-center gap-3 hover:bg-[#eff6ff]"
+              style={{ boxShadow: "0 4px 14px rgba(37,99,235,.08)" }}
+            >
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-base flex-shrink-0"
+                style={{
+                  background: "linear-gradient(135deg,#3b82f6,#1e40af)",
+                }}
+              >
+                ⚙
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-sm">医局長管理画面へ</div>
+                <div className="text-[11px] text-muted">
+                  期間作成・希望休確認・招待URL発行
+                </div>
+              </div>
+              <span className="text-muted-2">›</span>
+            </Link>
+          </section>
+        )}
+
         {/* プロフィール */}
         <section>
           <h2 className="accent text-sm font-bold mb-2">プロフィール</h2>
