@@ -3,6 +3,7 @@
 // - 所属医局があるかチェック
 // - 所属あり:今日のシフトと今後の予定を実データから表示
 // - 所属なし:「招待URLから登録してください」のウェルカム表示
+import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { eq, and, gte, asc } from "drizzle-orm";
 import {
@@ -88,6 +89,11 @@ export default async function Home() {
 
       {/* メインコンテンツ */}
       <main className="px-4 py-4 space-y-5">
+        {/* 医局長バナー(admin のみ表示) */}
+        {hasMembership && myMemberships[0].role === "admin" && (
+          <AdminBanner departmentName={myMemberships[0].departmentName} />
+        )}
+
         {hasMembership ? (
           <MembershipHome
             userName={appUser.displayName ?? "あなた"}
@@ -375,4 +381,36 @@ function getShiftTypeInfo(type: string): { key: string; label: string } {
     default:
       return { key: "toutyoku", label: type };
   }
+}
+
+// ===================================================================
+// 医局長バナー(admin のみホームに表示)
+// ===================================================================
+function AdminBanner({ departmentName }: { departmentName: string }) {
+  return (
+    <Link
+      href="/admin"
+      className="block rounded-xl p-4 text-white flex items-center gap-3"
+      style={{
+        background: "linear-gradient(135deg,#3b82f6,#1e40af)",
+        boxShadow: "0 4px 14px rgba(30,64,175,.25)",
+      }}
+    >
+      <div className="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center text-lg flex-shrink-0">
+        ⚙
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] opacity-90 font-semibold">
+          医局長メニュー
+        </div>
+        <div className="font-bold text-sm truncate">
+          {departmentName}の管理画面へ
+        </div>
+        <div className="text-[11px] opacity-80 mt-0.5">
+          期間作成・希望休確認・医局員招待
+        </div>
+      </div>
+      <span className="text-white/80">›</span>
+    </Link>
+  );
 }
