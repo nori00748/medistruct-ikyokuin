@@ -22,7 +22,7 @@ export default function SignUpPage() {
 
       <SignUp
         signInUrl="/sign-in"
-        forceRedirectUrl="/"
+        fallbackRedirectUrl="/"
         appearance={{
           elements: {
             rootBox: "w-full max-w-sm",

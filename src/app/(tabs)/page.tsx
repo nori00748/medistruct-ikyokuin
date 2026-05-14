@@ -14,7 +14,13 @@ import {
 } from "@/db";
 import { syncCurrentUser } from "@/lib/sync-user";
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ joined?: string; already_member?: string }>;
+}) {
+  const sp = await searchParams;
+
   // Clerkユーザーを DBに同期
   const appUser = await syncCurrentUser();
   if (!appUser) return null;
@@ -89,6 +95,23 @@ export default async function Home() {
 
       {/* メインコンテンツ */}
       <main className="px-4 py-4 space-y-5">
+        {/* 招待受諾の成功フラグ */}
+        {sp.joined === "1" && hasMembership && (
+          <FlashBanner
+            type="success"
+            icon="✓"
+            title={`${myMemberships[0].departmentName} に参加しました`}
+            description="ホーム画面でシフトを確認できます"
+          />
+        )}
+        {sp.already_member === "1" && (
+          <FlashBanner
+            type="info"
+            icon="ℹ️"
+            title="既にこの医局に所属しています"
+          />
+        )}
+
         {/* 医局長バナー(admin のみ表示) */}
         {hasMembership && myMemberships[0].role === "admin" && (
           <AdminBanner departmentName={myMemberships[0].departmentName} />
@@ -381,6 +404,36 @@ function getShiftTypeInfo(type: string): { key: string; label: string } {
     default:
       return { key: "toutyoku", label: type };
   }
+}
+
+// ===================================================================
+// フラッシュバナー(参加完了・既所属の通知)
+// ===================================================================
+function FlashBanner({
+  type,
+  icon,
+  title,
+  description,
+}: {
+  type: "success" | "info";
+  icon: string;
+  title: string;
+  description?: string;
+}) {
+  const styles =
+    type === "success"
+      ? "bg-[#dcfce7] border-[#16a34a] text-[#166534]"
+      : "bg-[#eff6ff] border-[#bfdbfe] text-[#1e40af]";
+
+  return (
+    <div className={`border rounded-xl p-3 flex items-center gap-3 ${styles}`}>
+      <span className="text-xl">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-sm">{title}</div>
+        {description && <div className="text-xs opacity-80">{description}</div>}
+      </div>
+    </div>
+  );
 }
 
 // ===================================================================
